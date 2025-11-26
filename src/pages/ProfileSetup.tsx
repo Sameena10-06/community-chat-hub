@@ -113,7 +113,9 @@ export default function ProfileSetup() {
 
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: userId,
+          username: email.split("@")[0],
           full_name: fullName,
           department,
           email,
@@ -122,8 +124,7 @@ export default function ProfileSetup() {
           achievements,
           about_me: aboutMe,
           avatar_url: avatarUrl,
-        })
-        .eq("id", userId);
+        });
 
       if (error) throw error;
 
