@@ -9,7 +9,8 @@ import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Users as UsersIcon } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, Users as UsersIcon, User } from "lucide-react";
 
 interface Group {
   id: string;
@@ -23,8 +24,10 @@ export default function Groups() {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [connections, setConnections] = useState<any[]>([]);
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -53,8 +56,23 @@ export default function Groups() {
   useEffect(() => {
     if (user) {
       fetchGroups();
+      fetchConnections();
     }
   }, [user]);
+
+  const fetchConnections = async () => {
+    const { data } = await supabase
+      .from("connections")
+      .select(`
+        *,
+        requester:profiles!connections_requester_id_fkey(id, full_name, avatar_url),
+        receiver:profiles!connections_receiver_id_fkey(id, full_name, avatar_url)
+      `)
+      .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .eq("status", "accepted");
+
+    if (data) setConnections(data);
+  };
 
   const fetchGroups = async () => {
     const { data, error } = await supabase
@@ -94,12 +112,15 @@ export default function Groups() {
       if (groupError) throw groupError;
 
       // Add creator as first member
+      const membersToAdd = [user.id, ...selectedMembers];
       const { error: memberError } = await supabase
         .from("group_members")
-        .insert({
-          group_id: groupData.id,
-          user_id: user.id,
-        });
+        .insert(
+          membersToAdd.map((userId) => ({
+            group_id: groupData.id,
+            user_id: userId,
+          }))
+        );
 
       if (memberError) throw memberError;
 
@@ -110,6 +131,7 @@ export default function Groups() {
 
       setNewGroupName("");
       setNewGroupDescription("");
+      setSelectedMembers([]);
       setDialogOpen(false);
       fetchGroups();
     } catch (error: any) {
@@ -166,6 +188,39 @@ export default function Groups() {
                       placeholder="What's this group about?"
                       rows={4}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Add Members (Connected Students)</Label>
+                    <div className="max-h-48 overflow-y-auto space-y-2 border rounded-md p-3">
+                      {connections.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No connections available</p>
+                      ) : (
+                        connections.map((conn) => {
+                          const other = conn.requester_id === user?.id ? conn.receiver : conn.requester;
+                          return (
+                            <label key={other.id} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-muted rounded-md">
+                              <input
+                                type="checkbox"
+                                checked={selectedMembers.includes(other.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedMembers([...selectedMembers, other.id]);
+                                  } else {
+                                    setSelectedMembers(selectedMembers.filter(id => id !== other.id));
+                                  }
+                                }}
+                                className="rounded border-input"
+                              />
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={other.avatar_url} />
+                                <AvatarFallback><User className="h-4 w-4" /></AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm">{other.full_name}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating..." : "Create Group"}

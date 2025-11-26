@@ -115,11 +115,7 @@ export default function ConnectedChat() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from("chat-files")
-          .getPublicUrl(filePath);
-
-        fileUrl = publicUrl;
+        fileUrl = filePath;
         fileName = file.name;
       }
 
@@ -159,6 +155,29 @@ export default function ConnectedChat() {
         variant: "destructive",
         title: "Error",
         description: error.message,
+      });
+    }
+  };
+
+  const downloadFile = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("chat-files")
+        .download(filePath);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to download file",
       });
     }
   };
@@ -250,14 +269,12 @@ export default function ConnectedChat() {
                           <div className="flex-1">
                             {message.content && <p className="text-sm">{message.content}</p>}
                             {message.file_url && (
-                              <a
-                                href={message.file_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm underline block mt-2"
+                              <button
+                                onClick={() => downloadFile(message.file_url, message.file_name)}
+                                className="text-sm underline block mt-2 hover:opacity-80"
                               >
                                 📎 {message.file_name}
-                              </a>
+                              </button>
                             )}
                           </div>
                           {message.sender_id === user?.id && (
