@@ -5,8 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import { Bell, Check, X, User } from "lucide-react";
+import { Bell, Check, X, User, Eye } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Notification {
   id: string;
@@ -21,11 +27,34 @@ interface Notification {
   };
 }
 
+interface Profile {
+  id: string;
+  username: string;
+  full_name: string;
+  department: string;
+  email: string;
+  about_me: string;
+  soft_skills: string[];
+  technical_skills: string[];
+  achievements: string;
+  avatar_url: string;
+}
+
 export default function Connections() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connections, setConnections] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const { toast } = useToast();
+
+  const viewProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    if (data) setSelectedProfile(data);
+  };
 
   useEffect(() => {
     loadData();
@@ -236,24 +265,34 @@ export default function Connections() {
                     : conn.requester;
                 return (
                   <Card key={conn.id} className="p-6">
-                    <div className="flex items-center gap-4">
-                      {otherUser?.avatar_url ? (
-                        <img
-                          src={otherUser.avatar_url}
-                          alt={otherUser.full_name}
-                          className="w-16 h-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                          <User className="h-8 w-8 text-muted-foreground" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {otherUser?.avatar_url ? (
+                          <img
+                            src={otherUser.avatar_url}
+                            alt={otherUser.full_name}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-semibold">{otherUser?.full_name}</h3>
+                          <Badge variant="default" className="mt-1">
+                            Connected
+                          </Badge>
                         </div>
-                      )}
-                      <div>
-                        <h3 className="font-semibold">{otherUser?.full_name}</h3>
-                        <Badge variant="default" className="mt-1">
-                          Connected
-                        </Badge>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => viewProfile(otherUser?.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Profile
+                      </Button>
                     </div>
                   </Card>
                 );
@@ -299,6 +338,80 @@ export default function Connections() {
             )}
           </TabsContent>
         </Tabs>
+
+        <Dialog open={!!selectedProfile} onOpenChange={() => setSelectedProfile(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Profile Details</DialogTitle>
+            </DialogHeader>
+            {selectedProfile && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  {selectedProfile.avatar_url ? (
+                    <img
+                      src={selectedProfile.avatar_url}
+                      alt={selectedProfile.full_name}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
+                      <User className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-2xl font-bold">{selectedProfile.full_name}</h2>
+                    <p className="text-muted-foreground">{selectedProfile.department}</p>
+                    <p className="text-sm text-muted-foreground">{selectedProfile.email}</p>
+                  </div>
+                </div>
+
+                {selectedProfile.about_me && (
+                  <div>
+                    <h3 className="font-semibold mb-2">About Me</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {selectedProfile.about_me}
+                    </p>
+                  </div>
+                )}
+
+                {selectedProfile.soft_skills?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Soft Skills</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProfile.soft_skills.map((skill, i) => (
+                        <Badge key={i} variant="outline">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProfile.technical_skills?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Technical Skills</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedProfile.technical_skills.map((skill, i) => (
+                        <Badge key={i} variant="secondary">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedProfile.achievements && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Achievements</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {selectedProfile.achievements}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
