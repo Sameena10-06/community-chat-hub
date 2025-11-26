@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import { User, Search, UserPlus, CheckCircle } from "lucide-react";
+import { User, Search, UserPlus, CheckCircle, MessageSquare } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ interface Profile {
 }
 
 export default function Profiles() {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
@@ -175,12 +177,21 @@ export default function Profiles() {
                     View Profile
                   </Button>
                   {!connection && (
-                    <Button
-                      size="sm"
-                      onClick={() => sendConnectionRequest(profile.id)}
-                    >
-                      <UserPlus className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate("/chat")}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => sendConnectionRequest(profile.id)}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
+                    </>
                   )}
                   {connection?.status === "accepted" && (
                     <Badge variant="default" className="flex items-center gap-1">

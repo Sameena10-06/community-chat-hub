@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import { Send, User } from "lucide-react";
+import { Send, User, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -168,7 +168,17 @@ export default function Chat() {
           {/* Students List */}
           <Card className="lg:col-span-1 h-[calc(100vh-12rem)] flex flex-col shadow-lg border">
             <div className="p-4 border-b border-border bg-muted/30">
-              <h2 className="text-lg font-semibold text-foreground">Non-Connected Students</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold text-foreground">Non-Connected Students</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/profiles")}
+                >
+                  <Users className="h-4 w-4 mr-1" />
+                  Browse
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">Click to view profile</p>
             </div>
             <ScrollArea className="flex-1 p-4">
