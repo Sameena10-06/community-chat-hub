@@ -20,6 +20,7 @@ interface Profile {
   full_name: string;
   department: string;
   email: string;
+  about_me: string;
   soft_skills: string[];
   technical_skills: string[];
   achievements: string;
@@ -221,6 +222,15 @@ export default function Profiles() {
                     <p className="text-sm text-muted-foreground">{selectedProfile.email}</p>
                   </div>
                 </div>
+
+                {selectedProfile.about_me && (
+                  <div>
+                    <h3 className="font-semibold mb-2">About Me</h3>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {selectedProfile.about_me}
+                    </p>
+                  </div>
+                )}
 
                 {selectedProfile.soft_skills?.length > 0 && (
                   <div>
