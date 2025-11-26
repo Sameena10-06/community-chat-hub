@@ -187,8 +187,13 @@ export default function Groups() {
                     <p className="text-sm text-muted-foreground mb-4">
                       {group.description || "No description"}
                     </p>
-                    <Button variant="outline" size="sm" className="w-full">
-                      View Group
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate(`/group-chat?id=${group.id}`)}
+                    >
+                      Open Chat
                     </Button>
                   </div>
                 </div>

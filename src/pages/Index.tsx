@@ -11,13 +11,21 @@ const Index = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        window.location.href = "/view-profile";
+      } else {
+        setUser(null);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        window.location.href = "/view-profile";
+      } else {
+        setUser(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -38,18 +46,14 @@ const Index = () => {
             <Link to="/">
               <Button variant="ghost" className="text-base">Home</Button>
             </Link>
-            <Link to="/about">
-              <Button variant="ghost" className="text-base">About Us</Button>
-            </Link>
-            {user ? (
-              <Link to="/chat">
-                <Button className="bg-primary hover:bg-primary/90">Dashboard</Button>
-              </Link>
-            ) : (
-              <Link to="/auth">
-                <Button className="bg-primary hover:bg-primary/90 px-6">Sign Up</Button>
+            {!user && (
+              <Link to="/about">
+                <Button variant="ghost" className="text-base">About Us</Button>
               </Link>
             )}
+            <Link to="/auth">
+              <Button className="bg-primary hover:bg-primary/90 px-6">Sign Up</Button>
+            </Link>
           </nav>
         </div>
       </header>

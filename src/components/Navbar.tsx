@@ -4,6 +4,7 @@ import { Network } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import UserMenu from "./UserMenu";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -32,11 +33,8 @@ export default function Navbar() {
         </Link>
         
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/">
+          <Link to="/dashboard">
             <Button variant="ghost" size="sm">Home</Button>
-          </Link>
-          <Link to="/about">
-            <Button variant="ghost" size="sm">About</Button>
           </Link>
           <Link to="/chat">
             <Button variant="ghost" size="sm">Open Chat</Button>
@@ -55,12 +53,18 @@ export default function Navbar() {
               <Link to="/profiles">
                 <Button variant="ghost" size="sm">Profiles</Button>
               </Link>
+              <Link to="/groups">
+                <Button variant="ghost" size="sm">Groups</Button>
+              </Link>
             </>
           )}
         </div>
 
         {user ? (
-          <UserMenu />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <UserMenu />
+          </div>
         ) : (
           <Button
             onClick={() => navigate("/auth")}
