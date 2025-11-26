@@ -336,6 +336,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          about_me: string | null
           achievements: string | null
           avatar_url: string | null
           created_at: string
@@ -348,6 +349,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          about_me?: string | null
           achievements?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -360,6 +362,7 @@ export type Database = {
           username: string
         }
         Update: {
+          about_me?: string | null
           achievements?: string | null
           avatar_url?: string | null
           created_at?: string

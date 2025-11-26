@@ -21,6 +21,7 @@ export default function ProfileSetup() {
   const [softSkills, setSoftSkills] = useState<string[]>([]);
   const [technicalSkills, setTechnicalSkills] = useState<string[]>([]);
   const [achievements, setAchievements] = useState("");
+  const [aboutMe, setAboutMe] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [currentSkillInput, setCurrentSkillInput] = useState("");
@@ -48,6 +49,7 @@ export default function ProfileSetup() {
         setSoftSkills(profile.soft_skills || []);
         setTechnicalSkills(profile.technical_skills || []);
         setAchievements(profile.achievements || "");
+        setAboutMe(profile.about_me || "");
         if (profile.avatar_url) {
           setAvatarPreview(profile.avatar_url);
         }
@@ -118,6 +120,7 @@ export default function ProfileSetup() {
           soft_skills: softSkills,
           technical_skills: technicalSkills,
           achievements,
+          about_me: aboutMe,
           avatar_url: avatarUrl,
         })
         .eq("id", userId);
@@ -128,7 +131,7 @@ export default function ProfileSetup() {
         title: "Profile saved!",
         description: "Your profile has been updated successfully.",
       });
-      navigate("/chat");
+      navigate("/view-profile");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -267,6 +270,17 @@ export default function ProfileSetup() {
                   </Badge>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aboutMe">About Me</Label>
+              <Textarea
+                id="aboutMe"
+                value={aboutMe}
+                onChange={(e) => setAboutMe(e.target.value)}
+                rows={3}
+                placeholder="Tell others about yourself..."
+              />
             </div>
 
             <div className="space-y-2">

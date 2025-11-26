@@ -110,13 +110,13 @@ export default function ConnectedChat() {
         const filePath = `${user.id}/${Math.random()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
-          .from("message-files")
+          .from("chat-files")
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
         const { data: { publicUrl } } = supabase.storage
-          .from("message-files")
+          .from("chat-files")
           .getPublicUrl(filePath);
 
         fileUrl = publicUrl;

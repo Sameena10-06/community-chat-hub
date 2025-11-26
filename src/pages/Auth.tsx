@@ -94,7 +94,7 @@ export default function Auth() {
         if (!profile?.full_name) {
           navigate("/profile-setup");
         } else {
-          navigate("/chat");
+          navigate("/view-profile");
         }
 
         toast({
