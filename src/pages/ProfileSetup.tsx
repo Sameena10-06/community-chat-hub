@@ -41,7 +41,7 @@ export default function ProfileSetup() {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         setFullName(profile.full_name || "");
