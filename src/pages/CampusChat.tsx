@@ -96,11 +96,11 @@ export default function CampusChat() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data } = await supabase.storage
           .from("chat-files")
-          .getPublicUrl(filePath);
+          .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year expiry
 
-        fileUrl = publicUrl;
+        fileUrl = data?.signedUrl || null;
         fileName = file.name;
       }
 
