@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Users as UsersIcon, User } from "lucide-react";
@@ -167,6 +167,7 @@ export default function Groups() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Create New Group</DialogTitle>
+                  <DialogDescription>Create a new group to collaborate with your connections.</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={createGroup} className="space-y-4">
                   <div className="space-y-2">

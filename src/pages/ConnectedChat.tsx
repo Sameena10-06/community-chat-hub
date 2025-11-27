@@ -5,7 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
-import { Send, Paperclip, User, X } from "lucide-react";
+import { Send, Paperclip, User, X, MoreVertical, Edit2, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ConnectedChat() {
   const [connections, setConnections] = useState<any[]>([]);
@@ -14,6 +28,9 @@ export default function ConnectedChat() {
   const [messageText, setMessageText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [editingMessage, setEditingMessage] = useState<any>(null);
+  const [editText, setEditText] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -159,6 +176,37 @@ export default function ConnectedChat() {
     }
   };
 
+  const openEditDialog = (message: any) => {
+    setEditingMessage(message);
+    setEditText(message.content);
+    setEditDialogOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editText.trim() || !editingMessage) return;
+
+    try {
+      const { error } = await supabase
+        .from("connected_messages")
+        .update({ content: editText, edited: true })
+        .eq("id", editingMessage.id)
+        .eq("sender_id", user?.id);
+
+      if (error) throw error;
+
+      setEditDialogOpen(false);
+      setEditingMessage(null);
+      setEditText("");
+      loadMessages();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   const downloadFile = async (filePath: string, fileName: string) => {
     try {
       const { data, error } = await supabase.storage
@@ -267,7 +315,14 @@ export default function ConnectedChat() {
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            {message.content && <p className="text-sm">{message.content}</p>}
+                            {message.content && (
+                              <p className="text-sm">
+                                {message.content}
+                                {message.edited && (
+                                  <span className="text-xs opacity-70 ml-2">(edited)</span>
+                                )}
+                              </p>
+                            )}
                             {message.file_url && (
                               <button
                                 onClick={() => downloadFile(message.file_url, message.file_name)}
@@ -278,12 +333,27 @@ export default function ConnectedChat() {
                             )}
                           </div>
                           {message.sender_id === user?.id && (
-                            <button
-                              onClick={() => unsendMessage(message.id)}
-                              className="text-xs opacity-70 hover:opacity-100"
-                            >
-                              Unsend
-                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 opacity-70 hover:opacity-100"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEditDialog(message)}>
+                                  <Edit2 className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => unsendMessage(message.id)}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Unsend
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                         </div>
                       </div>
@@ -334,6 +404,27 @@ export default function ConnectedChat() {
             )}
           </Card>
         </div>
+
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Message</DialogTitle>
+              <DialogDescription>Make changes to your message.</DialogDescription>
+            </DialogHeader>
+            <Textarea
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              className="min-h-[100px]"
+              placeholder="Edit your message..."
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={saveEdit}>Save Changes</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
