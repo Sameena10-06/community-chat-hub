@@ -5,6 +5,7 @@ import { Users, Network, Award, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FeatureCard } from "@/components/FeatureCard";
 import campusHero from "@/assets/campus-hero.jpg";
+import logo from "@/assets/logo.jpg";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -37,10 +38,8 @@ const Index = () => {
       <header className="border-b border-border bg-background">
         <div className="container flex h-20 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary">
-              <Network className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground">Digital Campus Network</span>
+            <img src={logo} alt="DCN Logo" className="w-10 h-10 object-contain" />
+            <span className="text-xl font-bold text-brand">Digital Campus Network</span>
           </Link>
           <nav className="flex items-center gap-6">
             <Link to="/">
