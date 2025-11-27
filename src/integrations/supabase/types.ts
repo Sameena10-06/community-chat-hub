@@ -20,6 +20,7 @@ export type Database = {
           content: string
           created_at: string | null
           deleted: boolean | null
+          edited: boolean | null
           file_name: string | null
           file_url: string | null
           id: string
@@ -30,6 +31,7 @@ export type Database = {
           content: string
           created_at?: string | null
           deleted?: boolean | null
+          edited?: boolean | null
           file_name?: string | null
           file_url?: string | null
           id?: string
@@ -40,6 +42,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           deleted?: boolean | null
+          edited?: boolean | null
           file_name?: string | null
           file_url?: string | null
           id?: string
@@ -267,6 +270,7 @@ export type Database = {
           content: string
           created_at: string
           deleted: boolean | null
+          edited: boolean | null
           id: string
           user_id: string | null
           username: string
@@ -275,6 +279,7 @@ export type Database = {
           content: string
           created_at?: string
           deleted?: boolean | null
+          edited?: boolean | null
           id?: string
           user_id?: string | null
           username: string
@@ -283,6 +288,7 @@ export type Database = {
           content?: string
           created_at?: string
           deleted?: boolean | null
+          edited?: boolean | null
           id?: string
           user_id?: string | null
           username?: string
