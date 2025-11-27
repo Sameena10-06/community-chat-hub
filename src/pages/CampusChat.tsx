@@ -37,7 +37,22 @@ export default function CampusChat() {
   useEffect(() => {
     if (user) {
       loadMessages();
-      subscribeToMessages();
+      const channel = supabase
+        .channel("campus_messages")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "campus_messages",
+          },
+          () => loadMessages()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -62,24 +77,6 @@ export default function CampusChat() {
     if (data) setMessages(data);
   };
 
-  const subscribeToMessages = () => {
-    const channel = supabase
-      .channel("campus_messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "campus_messages",
-        },
-        () => loadMessages()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
 
   const sendMessage = async () => {
     if (!messageText.trim() && !file) return;
@@ -136,6 +133,8 @@ export default function CampusChat() {
         .eq("user_id", user?.id);
 
       if (error) throw error;
+
+      await loadMessages();
       
       toast({
         title: "Message deleted",
