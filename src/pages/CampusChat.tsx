@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 export default function CampusChat() {
@@ -293,10 +294,11 @@ export default function CampusChat() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editingMessage} onOpenChange={() => setEditingMessage(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Message</DialogTitle>
-          </DialogHeader>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Message</DialogTitle>
+              <DialogDescription>Make changes to your message.</DialogDescription>
+            </DialogHeader>
           <div className="space-y-4">
             <Input
               value={editText}

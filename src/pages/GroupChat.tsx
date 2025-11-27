@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -209,6 +210,7 @@ export default function GroupChat() {
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add Members to Group</DialogTitle>
+                  <DialogDescription>Select connections to add to this group.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
