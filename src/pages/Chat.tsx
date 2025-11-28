@@ -26,8 +26,8 @@ import {
 interface Message {
   id: string;
   content: string;
-  username: string;
-  user_id: string;
+  sender_id: string;
+  receiver_id: string;
   created_at: string;
   deleted: boolean;
   edited?: boolean;
@@ -68,18 +68,17 @@ export default function Chat() {
   }, [navigate]);
 
   useEffect(() => {
-    if (user) {
+    if (user && selectedStudent) {
       fetchMessages();
-      fetchNonConnectedStudents();
 
       const channel = supabase
-        .channel("messages")
+        .channel("open_chat_messages")
         .on(
           "postgres_changes",
           {
             event: "*",
             schema: "public",
-            table: "messages",
+            table: "open_chat_messages",
           },
           () => fetchMessages()
         )
@@ -89,6 +88,12 @@ export default function Chat() {
         supabase.removeChannel(channel);
       };
     }
+  }, [user, selectedStudent]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNonConnectedStudents();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -96,9 +101,15 @@ export default function Chat() {
   }, [messages]);
 
   const fetchMessages = async () => {
+    if (!user || !selectedStudent) {
+      setMessages([]);
+      return;
+    }
+
     const { data } = await supabase
-      .from("messages")
+      .from("open_chat_messages")
       .select("*")
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${selectedStudent.id}),and(sender_id.eq.${selectedStudent.id},receiver_id.eq.${user.id})`)
       .order("created_at", { ascending: true });
 
     if (data) setMessages(data);
@@ -127,25 +138,19 @@ export default function Chat() {
   };
 
   const sendMessage = async () => {
-    if (!messageText.trim() || !user) return;
+    if (!messageText.trim() || !user || !selectedStudent) return;
 
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("id", user.id)
-        .single();
-
-      const { error } = await supabase.from("messages").insert({
+      const { error } = await supabase.from("open_chat_messages").insert({
         content: messageText,
-        user_id: user.id,
-        username: profile?.username || "Anonymous",
+        sender_id: user.id,
+        receiver_id: selectedStudent.id,
       });
 
       if (error) throw error;
 
       setMessageText("");
-      setSelectedStudent(null);
+      await fetchMessages();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -158,13 +163,14 @@ export default function Chat() {
   const unsendMessage = async (messageId: string) => {
     try {
       const { error } = await supabase
-        .from("messages")
+        .from("open_chat_messages")
         .update({ deleted: true })
         .eq("id", messageId)
-        .eq("user_id", user?.id);
+        .eq("sender_id", user?.id);
 
       if (error) throw error;
 
+      await fetchMessages();
       toast({
         title: "Message deleted",
         description: "Your message has been removed.",
@@ -188,13 +194,14 @@ export default function Chat() {
 
     try {
       const { error } = await supabase
-        .from("messages")
+        .from("open_chat_messages")
         .update({ content: editText, edited: true })
         .eq("id", editingMessage.id)
-        .eq("user_id", user?.id);
+        .eq("sender_id", user?.id);
 
       if (error) throw error;
 
+      await fetchMessages();
       toast({
         title: "Message updated",
         description: "Your message has been edited.",
@@ -269,29 +276,32 @@ export default function Chat() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {messages.filter(m => !m.deleted).map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.user_id === user?.id ? "justify-end" : "justify-start"
-                  }`}
-                >
+              {selectedStudent ? (
+                messages.filter(m => !m.deleted).map((message) => (
                   <div
-                    className={`max-w-[70%] rounded-lg p-4 ${
-                      message.user_id === user?.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                    key={message.id}
+                    className={`flex ${
+                      message.sender_id === user?.id ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold mb-1">{message.username}</p>
-                        <p className="text-sm">{message.content}</p>
-                        {message.edited && (
-                          <p className="text-xs opacity-70 mt-1 italic">(edited)</p>
-                        )}
-                      </div>
-                      {message.user_id === user?.id && (
+                    <div
+                      className={`max-w-[70%] rounded-lg p-4 ${
+                        message.sender_id === user?.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold mb-1">
+                            {message.sender_id === user?.id ? "You" : selectedStudent.full_name || selectedStudent.username}
+                          </p>
+                          <p className="text-sm">{message.content}</p>
+                          {message.edited && (
+                            <p className="text-xs opacity-70 mt-1 italic">(edited)</p>
+                          )}
+                        </div>
+                        {message.sender_id === user?.id && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="opacity-70 hover:opacity-100">
@@ -310,10 +320,15 @@ export default function Chat() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  Select a student from the list to start messaging
                 </div>
-              ))}
+              )}
               <div ref={messagesEndRef} />
             </div>
 
