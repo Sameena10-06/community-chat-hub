@@ -26,7 +26,7 @@ export default function Navbar() {
     <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
-          <img src={logo} alt="DCN Logo" className="w-10 h-10 object-contain" />
+          <img src={logo} alt="DCN Logo" className="h-10 w-10 object-contain" />
           <span className="text-xl font-bold text-brand">Digital Campus Network</span>
         </Link>
         

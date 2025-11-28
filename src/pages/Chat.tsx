@@ -87,6 +87,8 @@ export default function Chat() {
       return () => {
         supabase.removeChannel(channel);
       };
+    } else {
+      setMessages([]);
     }
   }, [user, selectedStudent]);
 
@@ -268,16 +270,32 @@ export default function Chat() {
 
           {/* Chat Area */}
           <Card className="lg:col-span-2 h-[calc(100vh-12rem)] flex flex-col shadow-lg border">
-            <div className="p-6 border-b border-border bg-muted/30">
-              <h1 className="text-2xl font-bold text-foreground">Open Chat</h1>
-              <p className="text-muted-foreground">
-                {selectedStudent ? `Messaging ${selectedStudent.full_name || selectedStudent.username}` : "Connect with non-connected students"}
-              </p>
-            </div>
+            {selectedStudent ? (
+              <>
+                <div className="p-4 border-b border-border bg-primary/5 flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={selectedStudent.avatar_url} />
+                    <AvatarFallback>
+                      <User className="h-6 w-6" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-foreground">
+                      {selectedStudent.full_name || selectedStudent.username}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">{selectedStudent.department}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedStudent(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {selectedStudent ? (
-                messages.filter(m => !m.deleted).map((message) => (
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {messages.filter(m => !m.deleted).map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${
@@ -320,31 +338,36 @@ export default function Chat() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  Select a student from the list to start messaging
+                  ))}
+                  <div ref={messagesEndRef} />
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
 
-            <div className="p-6 border-t border-border">
-              <div className="flex gap-2">
-                <Input
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder={selectedStudent ? `Message ${selectedStudent.full_name || selectedStudent.username}...` : "Type your message..."}
-                  onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                />
-                <Button onClick={sendMessage} disabled={!messageText.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
+                <div className="p-6 border-t border-border">
+                  <div className="flex gap-2">
+                    <Input
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      placeholder={`Message ${selectedStudent.full_name || selectedStudent.username}...`}
+                      onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                    />
+                    <Button onClick={sendMessage} disabled={!messageText.trim()}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <Users className="h-16 w-16 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Select a Student</h2>
+                <p className="text-muted-foreground max-w-md">
+                  Choose a student from the list to start a one-on-one conversation
+                </p>
               </div>
-            </div>
+            )}
           </Card>
         </div>
       </div>
