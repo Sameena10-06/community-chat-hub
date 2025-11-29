@@ -38,7 +38,7 @@ const Index = () => {
       <header className="border-b border-border bg-background">
         <div className="container flex h-20 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
-            <img src={logo} alt="DCN Logo" className="w-10 h-10 object-contain" />
+            <img src={logo} alt="DCN Logo" className="w-10 h-10 object-cover rounded-full" />
             <span className="text-xl font-bold text-brand">Digital Campus Network</span>
           </Link>
           <nav className="flex items-center gap-6">
@@ -80,11 +80,6 @@ const Index = () => {
               <Link to="/auth">
                 <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg bg-primary hover:bg-primary/90">
                   Get Started
-                </Button>
-              </Link>
-              <Link to="/auth">
-                <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg bg-primary hover:bg-primary/90">
-                  Sign In
                 </Button>
               </Link>
               <Link to="/about">
