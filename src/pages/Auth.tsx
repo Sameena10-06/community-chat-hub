@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Users } from "lucide-react";
+import logo from "@/assets/logo.jpg";
 
 const validatePassword = (password: string): string | null => {
   if (password.length < 8) {
@@ -117,9 +117,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md p-8 shadow-lg border">
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary mb-4">
-            <Users className="h-7 w-7 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="DCN Logo" className="w-16 h-16 object-cover rounded-full mb-4" />
           <h1 className="text-3xl font-bold text-foreground">
             {isSignUp ? "Join Campus Network" : "Welcome Back"}
           </h1>
