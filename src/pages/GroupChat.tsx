@@ -271,6 +271,29 @@ export default function GroupChat() {
     }
   };
 
+  const removeMember = async (memberId: string, memberUserId: string) => {
+    try {
+      const { error } = await supabase
+        .from("group_members")
+        .delete()
+        .eq("id", memberId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Member removed",
+        description: "The member has been removed from the group.",
+      });
+      loadMembers();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    }
+  };
+
   const unsendMessage = async (messageId: string) => {
     try {
       const { error } = await supabase
@@ -476,6 +499,16 @@ export default function GroupChat() {
                     </div>
                     {member.user_id === group?.created_by && (
                       <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Creator</span>
+                    )}
+                    {group?.created_by === user?.id && member.user_id !== user?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => removeMember(member.id, member.user_id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     )}
                   </div>
                 ))}
