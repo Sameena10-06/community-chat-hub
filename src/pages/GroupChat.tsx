@@ -110,16 +110,37 @@ export default function GroupChat() {
   };
 
   const loadMembers = async () => {
-    const { data, error } = await supabase
+    // First get group members
+    const { data: memberData, error: memberError } = await supabase
       .from("group_members")
-      .select(`
-        *,
-        profile:profiles(id, full_name, avatar_url, username)
-      `)
+      .select("*")
       .eq("group_id", groupId);
 
-    console.log("Members data:", data, "Error:", error);
-    if (data) setMembers(data);
+    if (memberError) {
+      console.log("Members error:", memberError);
+      return;
+    }
+
+    if (!memberData || memberData.length === 0) {
+      setMembers([]);
+      return;
+    }
+
+    // Then fetch profiles for each member
+    const userIds = memberData.map(m => m.user_id);
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url, username")
+      .in("id", userIds);
+
+    // Combine members with profiles
+    const membersWithProfiles = memberData.map(member => ({
+      ...member,
+      profile: profileData?.find(p => p.id === member.user_id) || null
+    }));
+
+    console.log("Members with profiles:", membersWithProfiles);
+    setMembers(membersWithProfiles);
   };
 
   const loadMessages = async () => {
@@ -332,7 +353,7 @@ export default function GroupChat() {
   const availableConnections = connections
     .filter((conn) => {
       const otherId = conn.requester_id === user?.id ? conn.receiver.id : conn.requester.id;
-      return !members.some((m) => m.profile?.id === otherId);
+      return !members.some((m) => m.user_id === otherId);
     })
     .map((conn) => ({
       id: conn.requester_id === user?.id ? conn.receiver.id : conn.requester.id,
