@@ -144,16 +144,39 @@ export default function GroupChat() {
   };
 
   const loadMessages = async () => {
-    const { data } = await supabase
+    // First fetch messages
+    const { data: messagesData, error: messagesError } = await supabase
       .from("group_messages")
-      .select(`
-        *,
-        profile:profiles(full_name, avatar_url, username)
-      `)
+      .select("*")
       .eq("group_id", groupId)
       .order("created_at");
 
-    if (data) setMessages(data);
+    if (messagesError) {
+      console.log("Messages error:", messagesError);
+      return;
+    }
+
+    if (!messagesData || messagesData.length === 0) {
+      setMessages([]);
+      return;
+    }
+
+    // Get unique user IDs from messages
+    const userIds = [...new Set(messagesData.map(m => m.user_id))];
+    
+    // Fetch profiles for those users
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url, username")
+      .in("id", userIds);
+
+    // Combine messages with profiles
+    const messagesWithProfiles = messagesData.map(message => ({
+      ...message,
+      profile: profilesData?.find(p => p.id === message.user_id) || null
+    }));
+
+    setMessages(messagesWithProfiles);
   };
 
   const subscribeToMessages = () => {
