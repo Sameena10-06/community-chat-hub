@@ -202,17 +202,42 @@ export default function GroupChat() {
   const sendMessage = async () => {
     if ((!messageText.trim() && !attachedFile) || !user) return;
 
+    const content = messageText.trim() || "(file)";
+    const tempId = `temp-${Date.now()}`;
+    
+    // Get current user's profile for optimistic update
+    const currentUserProfile = members.find(m => m.user_id === user.id)?.profile;
+
+    // Optimistic update - add message immediately
+    const optimisticMessage = {
+      id: tempId,
+      group_id: groupId,
+      user_id: user.id,
+      content,
+      created_at: new Date().toISOString(),
+      file_url: null,
+      file_name: attachedFile?.name || null,
+      edited: false,
+      profile: currentUserProfile || { full_name: user.user_metadata?.username, avatar_url: null, username: user.user_metadata?.username }
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    setMessageText("");
+    const fileToUpload = attachedFile;
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
     try {
       let fileUrl = null;
       let fileName = null;
 
-      if (attachedFile) {
-        const fileExt = attachedFile.name.split(".").pop();
+      if (fileToUpload) {
+        const fileExt = fileToUpload.name.split(".").pop();
         const filePath = `${user.id}/${Date.now()}.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("chat-files")
-          .upload(filePath, attachedFile);
+          .upload(filePath, fileToUpload);
 
         if (uploadError) throw uploadError;
 
@@ -221,22 +246,24 @@ export default function GroupChat() {
           .createSignedUrl(filePath, 3600 * 24 * 365);
 
         fileUrl = urlData?.signedUrl || null;
-        fileName = attachedFile.name;
+        fileName = fileToUpload.name;
       }
 
       const { error } = await supabase.from("group_messages").insert({
         group_id: groupId,
         user_id: user.id,
-        content: messageText.trim() || "(file)",
+        content,
         file_url: fileUrl,
         file_name: fileName,
       });
 
       if (error) throw error;
-      setMessageText("");
-      setAttachedFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      
+      // Reload to get the real message with proper ID
+      loadMessages();
     } catch (error: any) {
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       toast({
         variant: "destructive",
         title: "Error",
